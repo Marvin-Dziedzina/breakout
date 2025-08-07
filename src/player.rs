@@ -21,7 +21,9 @@ impl Plugin for PlayerPlugin {
             .add_systems(OnEnter(AppState::MainMenu), player_despawn_system)
             .add_systems(
                 Update,
-                (player_movement_system, handle_border_collision_system).chain().run_if(in_state(AppState::InGame)),
+                (player_movement_system, handle_border_collision_system)
+                    .chain()
+                    .run_if(in_state(AppState::InGame)),
             );
     }
 }
