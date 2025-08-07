@@ -93,13 +93,13 @@ fn trigger_ball_break_event_system(
     blocks: Query<(), With<Block>>,
 ) {
     for &CollisionStarted(a, b) in collision_started.read() {
-        if !(balls.contains(a) || balls.contains(b)) {
-            continue;
-        };
-
-        let block = if balls.contains(a) { b } else { a };
-        if !blocks.contains(block) {
-            continue;
+        let block = match (
+            balls.contains(a) && blocks.contains(b),
+            balls.contains(b) && blocks.contains(a),
+        ) {
+            (true, _) => b,
+            (_, true) => a,
+            _ => return,
         };
 
         debug!("Ball touched {}", block);
