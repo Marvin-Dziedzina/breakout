@@ -15,7 +15,7 @@ impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<BlockBreakEvent>();
 
-        app.add_observer(break_block_observer);
+        app.add_observer(despawn_block_observer);
 
         app.add_systems(OnEnter(AppState::InGame), load_blocks_system)
             .add_systems(OnEnter(AppState::MainMenu), unload_blocks_system)
@@ -30,6 +30,9 @@ impl Plugin for BlockPlugin {
 #[derive(Debug, Component)]
 pub struct Block;
 
+#[derive(Debug, Component)]
+pub struct BlockBreakSound(Handle<AudioSource>);
+
 #[derive(Debug, Event)]
 pub struct BlockBreakEvent(Entity);
 
@@ -38,6 +41,7 @@ fn load_blocks_system(
     windows: Query<&Window, With<PrimaryWindow>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
 ) -> Result {
     let size = windows.single()?.size();
 
@@ -46,6 +50,7 @@ fn load_blocks_system(
     let rect_height = 20.0;
     let mesh_handle = meshes.add(Rectangle::new(rect_width, rect_height));
     let material_handle = materials.add(Color::hsv(319.0, 0.95, 0.9));
+    let block_break_sound_handle = asset_server.load("block_break.wav");
 
     let origin = Vec2::new(-size.x, size.y) * 0.5
         + Vec2::new(
@@ -61,6 +66,7 @@ fn load_blocks_system(
 
             blocks.push((
                 Block,
+                BlockBreakSound(block_break_sound_handle.clone()),
                 Mesh2d(mesh_handle.clone()),
                 MeshMaterial2d(material_handle.clone()),
                 Transform::from_xyz(x, y, 0.0),
@@ -108,9 +114,21 @@ fn trigger_ball_break_event_system(
     }
 }
 
-fn break_block_observer(trigger: Trigger<BlockBreakEvent>, mut commands: Commands) {
+fn despawn_block_observer(
+    trigger: Trigger<BlockBreakEvent>,
+    mut commands: Commands,
+    blocks: Query<&BlockBreakSound, With<Block>>,
+) -> Result {
+    let block_break_sound_handle = blocks.get(trigger.0)?;
+    commands.spawn((
+        AudioPlayer::new(block_break_sound_handle.0.clone()),
+        PlaybackSettings::DESPAWN,
+    ));
+
     commands.entity(trigger.0).despawn();
     debug!("Despawned block {}", trigger.0);
+
+    Ok(())
 }
 
 fn check_for_win_system(mut commands: Commands, blocks: Query<(), With<Block>>) {

@@ -1,5 +1,5 @@
 use avian2d::prelude::{Collider, Friction, GravityScale, LinearVelocity, Restitution, RigidBody};
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{audio::Volume, prelude::*, window::PrimaryWindow};
 
 use crate::app_state::AppState;
 
@@ -26,6 +26,7 @@ impl Plugin for BallPlugin {
 struct BallHandles {
     pub mesh_handle: Handle<Mesh>,
     pub material_handle: Handle<ColorMaterial>,
+    pub ball_death_sound_handle: Handle<AudioSource>,
 }
 
 #[derive(Debug, Component)]
@@ -38,10 +39,12 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     commands.insert_resource(BallHandles {
         mesh_handle: meshes.add(Circle::new(BALL_RADIUS)),
         material_handle: materials.add(Color::linear_rgb(0.9, 0.9, 0.9)),
+        ball_death_sound_handle: asset_server.load("ball_death.wav"),
     });
 
     commands.trigger(SpawnBallEvent);
@@ -84,14 +87,21 @@ fn initial_velocity_observer(trigger: Trigger<OnAdd, Ball>, mut commands: Comman
 
 fn check_ball_death(
     mut commands: Commands,
+    ball_handles: Res<BallHandles>,
     windows: Query<&Window, With<PrimaryWindow>>,
     balls: Query<(Entity, &Transform), With<Ball>>,
 ) -> Result {
+    use bevy::audio::Volume;
+
     let y = windows.single()?.height();
     let half_y = y / 2.0;
 
     for (entity, transform) in balls.iter() {
         if transform.translation.y + BALL_RADIUS < -half_y {
+            commands.spawn((
+                AudioPlayer::new(ball_handles.ball_death_sound_handle.clone()),
+                PlaybackSettings::DESPAWN.with_volume(Volume::Linear(0.50)),
+            ));
             commands.entity(entity).despawn();
             commands.trigger(SpawnBallEvent);
         }
