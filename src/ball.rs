@@ -1,5 +1,5 @@
 use avian2d::prelude::{Collider, Friction, GravityScale, LinearVelocity, Restitution, RigidBody};
-use bevy::{audio::Volume, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::app_state::AppState;
 
