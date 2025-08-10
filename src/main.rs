@@ -1,6 +1,7 @@
 //! This is a Breakout clone.
 
 use bevy::prelude::*;
+use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 
 use crate::{
     app_state::AppState, ball::BallPlugin, main_menu::MainMenuPlugin, player::PlayerPlugin,
@@ -16,7 +17,13 @@ mod world;
 fn main() {
     let mut app = App::new();
 
-    app.add_plugins((DefaultPlugins, avian2d::PhysicsPlugins::default()));
+    app.add_plugins((
+        EmbeddedAssetPlugin {
+            mode: PluginMode::ReplaceDefault,
+        },
+        DefaultPlugins,
+        avian2d::PhysicsPlugins::default(),
+    ));
 
     app.init_state::<AppState>();
 
