@@ -2,10 +2,14 @@
 
 use bevy::prelude::*;
 
-use crate::{app_state::AppState, ball::BallPlugin, player::PlayerPlugin, world::WorldPlugin};
+use crate::{
+    app_state::AppState, ball::BallPlugin, main_menu::MainMenuPlugin, player::PlayerPlugin,
+    world::WorldPlugin,
+};
 
 mod app_state;
 mod ball;
+mod main_menu;
 mod player;
 mod world;
 
@@ -16,20 +20,20 @@ fn main() {
 
     app.init_state::<AppState>();
 
-    app.add_plugins((WorldPlugin, PlayerPlugin, BallPlugin));
+    app.add_plugins((MainMenuPlugin, WorldPlugin, PlayerPlugin, BallPlugin));
 
     app.add_observer(start_game_observer)
         .add_observer(stop_game_observer);
 
     app.add_systems(
         Startup,
-        (
-            show_archetypes,
-            // TODO: Temporary
-            |mut commands: Commands| {
-                commands.trigger(StartGame);
-            },
-        ),
+        (show_archetypes, |mut commands: Commands| {
+            commands.spawn(Camera2d);
+        }),
+    )
+    .add_systems(
+        Update,
+        stop_game_on_esc_system.run_if(in_state(AppState::InGame)),
     );
 
     app.run();
@@ -51,4 +55,10 @@ fn start_game_observer(_: Trigger<StartGame>, mut app_state: ResMut<NextState<Ap
 
 fn stop_game_observer(_: Trigger<StopGame>, mut app_state: ResMut<NextState<AppState>>) {
     app_state.set(AppState::MainMenu);
+}
+
+fn stop_game_on_esc_system(mut commands: Commands, keys: Res<ButtonInput<KeyCode>>) {
+    if keys.just_pressed(KeyCode::Escape) {
+        commands.trigger(StopGame);
+    };
 }

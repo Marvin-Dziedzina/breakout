@@ -71,8 +71,6 @@ fn player_spawn_system(mut commands: Commands) {
     commands.trigger(SpawnPlayer(Player::First));
     commands.trigger(SpawnPlayer(Player::Second));
 
-    commands.spawn(Camera2d);
-
     info!("Spawned first player");
 }
 

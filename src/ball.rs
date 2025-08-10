@@ -15,6 +15,7 @@ impl Plugin for BallPlugin {
 
         app.add_systems(OnEnter(AppState::MainMenu), despawn_balls_system)
             .add_systems(Startup, setup)
+            .add_systems(OnEnter(AppState::InGame), spawn_ball_system)
             .add_systems(
                 Update,
                 (check_ball_death, hold_speed_system).run_if(in_state(AppState::InGame)),
@@ -46,7 +47,9 @@ fn setup(
         material_handle: materials.add(Color::linear_rgb(0.9, 0.9, 0.9)),
         ball_death_sound_handle: asset_server.load("ball_death.wav"),
     });
+}
 
+fn spawn_ball_system(mut commands: Commands) {
     commands.trigger(SpawnBallEvent);
 }
 
