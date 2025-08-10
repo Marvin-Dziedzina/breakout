@@ -83,9 +83,9 @@ fn despawn_balls_system(mut commands: Commands, balls: Query<Entity, With<Ball>>
 }
 
 fn initial_velocity_observer(trigger: Trigger<OnAdd, Ball>, mut commands: Commands) {
-    commands
-        .entity(trigger.target())
-        .insert(LinearVelocity(Vec2::new(0.5, 1.0).normalize() * MAX_SPEED));
+    commands.entity(trigger.target()).insert(LinearVelocity(
+        Vec2::new(rand::random_range(-3.5..3.5), 1.0).normalize() * MAX_SPEED,
+    ));
 }
 
 fn check_ball_death(
