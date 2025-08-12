@@ -2,6 +2,7 @@
 name = "breakout"
 version = "1.0.0"
 edition = "2024"
+exclude = ["assets", "README.md"]
 
 [dependencies]
 bevy = { version = "0.16.1", features = ["wav"] }
